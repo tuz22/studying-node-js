@@ -3,6 +3,8 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('vew engine', 'ejs');
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'));
 
 /* middleware : 요청과 응답 사이에 동작하는 코드 */
 app.use('/public', express.static('public')); // static 파일을 보관하기 위해 public폴더를 쓸 것
@@ -123,4 +125,26 @@ app.get('/detail/:id', function (요청, 응답) {
         console.log(결과);
         응답.render('detail.ejs', { data: 결과 });
     });
+});
+
+/* edit : 수정 */
+// 수정페이지 이동
+app.get('/edit/:id', function (요청, 응답) {
+    db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
+        console.log(결과);
+        응답.render('edit.ejs', { post: 결과 });
+    });
+});
+
+// PUT; 수정하기
+app.put('/edit', function (요청, 응답) {
+    // updateOne(수정할 것, 수정할 값, 콜백함수)
+    db.collection('post').updateOne(
+        { _id: parseInt(요청.body.id) },
+        { $set: { title: 요청.body.title, date: 요청.body.date } },
+        function (에러, 결과) {
+            console.log('수정완료');
+            응답.redirect('/list');
+        }
+    );
 });
