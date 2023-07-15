@@ -110,3 +110,12 @@ app.delete('/delete', function (요청, 응답) {
         응답.status(200).send({ message: '성공' });
     });
 });
+
+/* detail : 해당 글 번호의 상세페이지 이동 */
+// URL parameter
+app.get('/detail/:id', function (요청, 응답) {
+    db.collection('post').findOne({ _id: parseInt(요청.params.id) }, function (에러, 결과) {
+        console.log(결과);
+        응답.render('detail.ejs', { data: 결과 });
+    });
+});
