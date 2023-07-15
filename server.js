@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('vew engine', 'ejs');
 
+/* middleware : 요청과 응답 사이에 동작하는 코드 */
+app.use('/public', express.static('public')); // static 파일을 보관하기 위해 public폴더를 쓸 것
+
 var db;
 
 const MongoClient = require('mongodb').MongoClient;
@@ -36,11 +39,13 @@ app.get('/pet', function (요청, 응답) {
 /* 서버에서 HTML 파일 전송 */
 app.get('/', function (요청, 응답) {
     //  req, res
-    응답.sendFile(__dirname + '/index.html');
+    // 응답.sendFile(__dirname + '/index.html');
+    응답.render('index.ejs'); // ejs파일로 변경해서
 });
 
 app.get('/write', function (요청, 응답) {
     응답.sendFile(__dirname + '/write.html');
+    응답.render('write.ejs');
 });
 
 /* post 요청 */
