@@ -176,6 +176,22 @@ app.post(
     }
 );
 
+// 마이페이지로 이동
+app.get('/mypage', 로그인했니, function (요청, 응답) {
+    // 요청.user: deserializeUser()에서 찾은 사용자 정보
+    console.log(요청.user);
+    응답.render('mypage.ejs', { 사용자: 요청.user });
+});
+
+// 마이페이지 이동 전 실행할 미들웨어
+function 로그인했니(요청, 응답, next) {
+    if (요청.user) {
+        next();
+    } else {
+        응답.send('로그인안함');
+    }
+}
+
 // DB의 아이디 비번과 맞는지 비교
 passport.use(
     new LocalStrategy(
@@ -207,4 +223,13 @@ passport.use(
 passport.serializeUser(function (user, done) {
     // * 여기 user로 들어감
     done(null, user.id);
+});
+
+// 로그인한 사용자의 개인정보를 DB에서 찾기
+passport.deserializeUser(function (아이디, done) {
+    // DB에서 위에 있는 user.id로 찾은 사용자 정보를
+    // done(null, {여기에 넣음});
+    db.collection('login').findOne({ id: 아이디 }, function (에러, 결과) {
+        done(null, 결과); // 결과: {id: 아이디값, pw: 비번값}
+    });
 });
