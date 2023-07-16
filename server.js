@@ -148,3 +148,63 @@ app.put('/edit', function (요청, 응답) {
         }
     );
 });
+
+/* Session으로 로그인 기능 구현*/
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const session = require('express-session');
+
+// 로그인 요청시 아이디, 비번 검증 미들웨어 실행
+// app.use(middleware)
+// *middleware : 요청-응답 중간에 실행되는 코드
+app.use(session({ secret: '비밀코드', resave: true, saveUninitialized: false }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/login', function (요청, 응답) {
+    응답.render('login.ejs');
+});
+
+app.post(
+    '/login',
+    passport.authenticate('local', {
+        // local방식으로 검사
+        failureRedirect: '/fail', // 회원인증 실패 시 /fail로 이동
+    }),
+    function (요청, 응답) {
+        응답.redirect('/'); // 회원인증 성공 시 /로 이동
+    }
+);
+
+// DB의 아이디 비번과 맞는지 비교
+passport.use(
+    new LocalStrategy(
+        {
+            usernameField: 'id', // 사용자가 입력한 아이디 비번 항목 정의(name속성)
+            passwordField: 'pw',
+            session: true, // 로그인 후 세션을 저장할 것인지
+            passReqToCallback: false, // 아이디, 비번 외에 다른 것 인증 여부
+        },
+        function (입력한아이디, 입력한비번, done) {
+            //console.log(입력한아이디, 입력한비번);
+            db.collection('login').findOne({ id: 입력한아이디 }, function (에러, 결과) {
+                if (에러) return done(에러);
+
+                // done(서버에러, 성공 시 사용자 DB 데이터, 에러메시지)
+                if (!결과) return done(null, false, { message: '존재하지않는 아이디요' });
+                if (입력한비번 == 결과.pw) {
+                    return done(null, 결과); // * 여기 결과가
+                } else {
+                    return done(null, false, { message: '비번틀렸어요' });
+                }
+            });
+        }
+    )
+);
+
+// 로그인 성공시 세션에 저장
+// 세션 데이터를 만들고 세션의 id 정보를 쿠키로 보냄
+passport.serializeUser(function (user, done) {
+    // * 여기 user로 들어감
+    done(null, user.id);
+});
