@@ -5,6 +5,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('vew engine', 'ejs');
 const methodOverride = require('method-override');
 app.use(methodOverride('_method'));
+require('dotenv').config();
 
 /* middleware : 요청과 응답 사이에 동작하는 코드 */
 app.use('/public', express.static('public')); // static 파일을 보관하기 위해 public폴더를 쓸 것
@@ -12,24 +13,21 @@ app.use('/public', express.static('public')); // static 파일을 보관하기 �
 var db;
 
 const MongoClient = require('mongodb').MongoClient;
-MongoClient.connect(
-    'mongodb+srv://tuz22:sert1234@tuz22.gmrxoku.mongodb.net/?retryWrites=true&w=majority',
-    function (에러, client) {
-        // 연결되면 실행
-        if (에러) return console.log(에러);
+MongoClient.connect(process.env.DB_URL, function (에러, client) {
+    // 연결되면 실행
+    if (에러) return console.log(에러);
 
-        db = client.db('todoapp'); // 데이터 저장할 폴더 명시
+    db = client.db('todoapp'); // 데이터 저장할 폴더 명시
 
-        // db.collection('post').insertOne({_id: 0, 이름: 'Kim', 나이: 20}, function(에러, 결과){ // 저장할 데이터는 Object 자료형으로
-        //     console.log('저장완료');
-        // });
+    // db.collection('post').insertOne({_id: 0, 이름: 'Kim', 나이: 20}, function(에러, 결과){ // 저장할 데이터는 Object 자료형으로
+    //     console.log('저장완료');
+    // });
 
-        app.listen(8080, function () {
-            // listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
-            console.log('listening on 8080');
-        }); // 서버를 띄우기 위한 기본 세팅
-    }
-);
+    app.listen(process.env.PORT, function () {
+        // listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
+        console.log('listening on 8080');
+    }); // 서버를 띄우기 위한 기본 세팅
+});
 
 /* get 요청 */
 // app.get('/pet', (요청, 응답) => {});
