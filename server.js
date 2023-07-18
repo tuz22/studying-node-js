@@ -236,9 +236,32 @@ passport.deserializeUser(function (아이디, done) {
 app.get('/search', (요청, 응답) => {
     console.log(요청.query); // { value: '쿠키숙제하기' }
     console.log(요청.query.value); // 쿠키숙제하기
+
+    var 검색조건 = [
+        {
+            $search: {
+                index: 'titleSearch', // index name
+                text: {
+                    query: 요청.query.value, // 검색 키워드
+                    path: 'title', // 검색 대상; 제목 날짜 둘다 찾으려면 ['title', 'date']
+                },
+            },
+        },
+        { $sort: { _id: 1 } }, // 정렬 1: 오름차순 -1 내림차순
+        { $limit: 10 }, // 10개까지만 결과 가져옴
+        { $project: { title: 1, _id: 0, score: { $meta: 'searchScore' } } }, // 가져올 것은 1, 안 가져올것은 0, score는 검색한 키워드와 관련 높아보이는걸 점수매김
+    ];
     db.collection('post')
-        .find({ title: 요청.query.value })
+        // .find({ title: 요청.query.value }) // 문제점: 정확히 일치하는 것만 검색 가능
+        // .find({ title: /쿠키/ }) // 해결방안: 이런식으로 정규식을 쓰면 됨 but find()로 다 찾는건 오래 걸림
+        // .find({ $text: { $search: 요청.query.value } }) // 문제점: 검색 키워드가 정확히 일치해야함(띄어쓰기 단위로 indexing하기 때문에)
+        .aggregate(검색조건)
         .toArray((에러, 결과) => {
+            console.log(에러);
             console.log(결과); // [ { _id: 4, title: '쿠키숙제하기', date: '0718' } ]
+            응답.render('search.ejs', { posts: 결과 });
         });
 });
+
+// Binary Search
+// 미리 숫자순으로 정렬 되어있어야함 - 미리 정렬해두기(=indexing)
