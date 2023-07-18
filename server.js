@@ -231,3 +231,14 @@ passport.deserializeUser(function (아이디, done) {
         done(null, 결과); // 결과: {id: 아이디값, pw: 비번값}
     });
 });
+
+/* 검색 */
+app.get('/search', (요청, 응답) => {
+    console.log(요청.query); // { value: '쿠키숙제하기' }
+    console.log(요청.query.value); // 쿠키숙제하기
+    db.collection('post')
+        .find({ title: 요청.query.value })
+        .toArray((에러, 결과) => {
+            console.log(결과); // [ { _id: 4, title: '쿠키숙제하기', date: '0718' } ]
+        });
+});
