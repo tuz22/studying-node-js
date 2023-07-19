@@ -48,50 +48,6 @@ app.get('/write', function (요청, 응답) {
     응답.render('write.ejs');
 });
 
-/* post 요청 */
-app.post('/add', function (요청, 응답) {
-    // input에 적은 정보는 '요청'에 저장되어있음. 쉽게 사용하려면 라이브러리(body-parser) 필요
-    응답.send('전송완료');
-
-    // 1. DB.collection 내의 총 게시물갯수를 찾음
-    db.collection('counter').findOne({ name: '게시물갯수' }, function (에러, 결과) {
-        console.log(결과.totalPost);
-
-        // 2. 총 게시물갯수를 변수에 저장
-        var 총게시물갯수 = 결과.totalPost;
-
-        // 3. DB.collection에 새 게시물을 기록
-        db.collection('post').insertOne(
-            { _id: 총게시물갯수 + 1, title: 요청.body.title, date: 요청.body.date },
-            function (에러, 결과) {
-                console.log('저장완료');
-
-                // 4. counter란 collection에 이름이 게시물갯수인 것을 찾아서 totalPost란 항목을 1 증가시킴
-                // db.collection('counter').updateOne({어떤데이터를 수정할지}, {수정값}, function(){})
-                db.collection('counter').updateOne(
-                    { name: '게시물갯수' },
-                    { $inc: { totalPost: 1 } },
-                    function (에러, 결과) {
-                        if (에러) {
-                            return console.log(에러);
-                        }
-                    }
-                );
-            }
-        );
-
-        /* 
-            operator 
-            - $set : 변경
-            - $inc : 증가
-            - $min : 기존값보다 적을 때만 변경
-            - $rename : key값 이름 변경
-            ...
-        
-        */
-    });
-});
-
 /* HTML에 DB 데이터 넣기 (EJS) */
 /* ejs 파일은 views 폴더 내에 위치해야함 */
 app.get('/list', function (요청, 응답) {
@@ -102,18 +58,6 @@ app.get('/list', function (요청, 응답) {
             console.log(결과);
             응답.render('list.ejs', { posts: 결과 }); // 찾은 데이터 ejs파일에 넣기
         });
-});
-
-/* DB에서 데이터 삭제하기 */
-app.delete('/delete', function (요청, 응답) {
-    console.log(요청.body); // 요청시 함께 보낸 데이터를 찾기(게시글 번호)
-    요청.body._id = parseInt(요청.body._id); // 문자가 된 id값을 다시 숫자로 변환
-
-    // db.collection('post').deleteOne({삭제할 항목}, function(){
-    db.collection('post').deleteOne(요청.body, function (에러, 결과) {
-        console.log('삭제완료');
-        응답.status(200).send({ message: '성공' });
-    });
 });
 
 /* detail : 해당 글 번호의 상세페이지 이동 */
@@ -229,6 +173,70 @@ passport.deserializeUser(function (아이디, done) {
     // done(null, {여기에 넣음});
     db.collection('login').findOne({ id: 아이디 }, function (에러, 결과) {
         done(null, 결과); // 결과: {id: 아이디값, pw: 비번값}
+    });
+});
+
+/* 회원가입 */
+app.post('/register', function (요청, 응답) {
+    db.collection('login').insertOne({ id: 요청.body.id, pw: 요청.body.pw }, function (에러, 결과) {
+        응답.redirect('/');
+    });
+});
+
+/* post 요청 */
+app.post('/add', function (요청, 응답) {
+    // input에 적은 정보는 '요청'에 저장되어있음. 쉽게 사용하려면 라이브러리(body-parser) 필요
+    응답.send('전송완료');
+
+    // 1. DB.collection 내의 총 게시물갯수를 찾음
+    db.collection('counter').findOne({ name: '게시물갯수' }, function (에러, 결과) {
+        console.log(결과.totalPost);
+
+        // 2. 총 게시물갯수를 변수에 저장
+        var 총게시물갯수 = 결과.totalPost;
+        var 저장할거 = { _id: 총게시물갯수 + 1, title: 요청.body.title, date: 요청.body.date, writer: 요청.user._id };
+
+        // 3. DB.collection에 새 게시물을 기록
+        db.collection('post').insertOne(저장할거, function (에러, 결과) {
+            console.log('저장완료');
+
+            // 4. counter란 collection에 이름이 게시물갯수인 것을 찾아서 totalPost란 항목을 1 증가시킴
+            // db.collection('counter').updateOne({어떤데이터를 수정할지}, {수정값}, function(){})
+            db.collection('counter').updateOne(
+                { name: '게시물갯수' },
+                { $inc: { totalPost: 1 } },
+                function (에러, 결과) {
+                    if (에러) {
+                        return console.log(에러);
+                    }
+                }
+            );
+        });
+
+        /* 
+            operator 
+            - $set : 변경
+            - $inc : 증가
+            - $min : 기존값보다 적을 때만 변경
+            - $rename : key값 이름 변경
+            ...
+        
+        */
+    });
+});
+
+/* DB에서 데이터 삭제하기 */
+app.delete('/delete', function (요청, 응답) {
+    console.log(요청.body); // 요청시 함께 보낸 데이터를 찾기(게시글 번호)
+    요청.body._id = parseInt(요청.body._id); // 문자가 된 id값을 다시 숫자로 변환
+
+    var 삭제할데이터 = { _id: 요청.body._id, writer: 요청.user._id }; // body._id의 글에 저장된 작성자 id와 동일할 때 삭제
+    db.collection('post').deleteOne(삭제할데이터, function (에러, 결과) {
+        console.log('삭제완료');
+        if (에러) {
+            console.log(에러);
+        }
+        응답.status(200).send({ message: '성공' });
     });
 });
 
