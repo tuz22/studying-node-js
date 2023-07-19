@@ -273,3 +273,6 @@ app.get('/search', (요청, 응답) => {
 
 // Binary Search
 // 미리 숫자순으로 정렬 되어있어야함 - 미리 정렬해두기(=indexing)
+
+/* server.js에 shop.js 라우터 첨부하기 */
+app.use('/shop', require('./routes/shop.js')); // '/shop' 경로로 사용자가 요청했을 때 `require('./routes/shop.js')`이런 미들웨어(= 라우터)를 적용해줌
