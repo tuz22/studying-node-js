@@ -276,3 +276,53 @@ app.get('/search', (요청, 응답) => {
 
 /* server.js에 shop.js 라우터 첨부하기 */
 app.use('/shop', require('./routes/shop.js')); // '/shop' 경로로 사용자가 요청했을 때 `require('./routes/shop.js')`이런 미들웨어(= 라우터)를 적용해줌
+
+/* 이미지 업로드 */
+// multer 라이브러리 세팅
+let multer = require('multer');
+// diskStorage : 일반하드 <-> memoryStorage : 램(휘발성있음)
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './public/image');
+    },
+    filename: function (req, file, cb) {
+        // 저장한 이미지 파일명 설정
+        cb(null, file.originalname);
+        // cb(null, file.originalname + '날짜~');
+    },
+    filefilter: function (req, file, cb) {
+        // 파일 형식(확장자) 필터
+        var ext = path.extname(file.originalname);
+        if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+            return callback(new Error('PNG, JPG만 업로드하세요'));
+        }
+        callback(null, true);
+    },
+    limits: {
+        // 파일 크기 제한
+        // fileSize: 1024 * 1024,
+    },
+});
+
+var upload = multer({ storage: storage }); // 미들웨어처럼 실행시키면 됨
+
+app.get('/upload', function (요청, 응답) {
+    응답.render('upload.ejs');
+});
+
+// 파일 하나 업로드
+app.post('/upload', upload.single('profile'), function (요청, 응답) {
+    //upload.single('input의 name 속성')
+    응답.send('업로드완료');
+});
+
+// 파일 여러개 업로드
+// app.post('/upload', upload.array('profile', 10), function (요청, 응답) {
+//     //upload.single('input의 name 속성', 업로드 최대 갯수)
+//     응답.send('업로드완료');
+// });
+
+/* 업로드한 이미지 보여주기 */
+app.get('/image/:imageName', function (요청, 응답) {
+    응답.sendFile(__dirname + '/public/image/' + 요청.params.imageName); // __dirname: 현재파일 경로
+});
