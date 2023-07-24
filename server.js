@@ -240,6 +240,33 @@ app.delete('/delete', function (요청, 응답) {
     });
 });
 
+/* 채팅 */
+const { ObjectId } = require('mongodb');
+
+app.post('/chatroom', 로그인했니, function (요청, 응답) {
+    var 저장할거 = {
+        title: '뫄뫄채팅방',
+        // member: [요청.body.채팅받은유저id, 요청.user._id], // 이렇게 쓰면 0번째거 string으로 나옴
+        member: [ObjectId(요청.body.채팅받은유저id), 요청.user._id], // ObjectId() 사용 시 ObjectId에 담김
+        date: new Date(),
+    };
+    db.collection('chatroom')
+        .insertOne(저장할거)
+        .then((결과) => {
+            응답.send('성공');
+        });
+});
+
+app.get('/chat', 로그인했니, function (요청, 응답) {
+    db.collection('chatroom')
+        .find({ member: 요청.user._id })
+        .toArray()
+        .then((결과) => {
+            console.log(결과);
+            응답.render('chat.ejs', { data: 결과 });
+        });
+});
+
 /* 검색 */
 app.get('/search', (요청, 응답) => {
     console.log(요청.query); // { value: '쿠키숙제하기' }
