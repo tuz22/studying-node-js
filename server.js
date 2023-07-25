@@ -243,6 +243,7 @@ app.delete('/delete', function (요청, 응답) {
 /* 채팅 */
 const { ObjectId } = require('mongodb');
 
+// 채팅방 개설
 app.post('/chatroom', 로그인했니, function (요청, 응답) {
     var 저장할거 = {
         title: '뫄뫄채팅방',
@@ -267,7 +268,8 @@ app.get('/chat', 로그인했니, function (요청, 응답) {
         });
 });
 
-app.post('/message', 로그인했니, function (요청, 응답) {
+// 채팅 데이터 전송
+app.post('/message/:id', 로그인했니, function (요청, 응답) {
     var 저장할거 = {
         parent: 요청.body.parent,
         content: 요청.body.content,
@@ -279,6 +281,25 @@ app.post('/message', 로그인했니, function (요청, 응답) {
         .then(() => {
             console.log('DB저장 성공');
             응답.send('DB저장 성공');
+        });
+});
+
+// 실시간 소통채널 열기
+app.get('/message/:id', 로그인했니, function (요청, 응답) {
+    응답.writeHead(200, {
+        'Connection': 'keep-alive',
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+    });
+
+    db.collection('message')
+        .find({ parent: 요청.params.id })
+        .toArray()
+        .then((결과) => {
+            응답.write('event: test\n'); // 사용자에게 데이터 전송 - event: 보낼데이터이름\n
+            // 응답.write('data:' + 결과 + '\n\n'); // 사용자에게 데이터 전송 - data: 보낼데이터\n\n
+            // -> 이렇게 보내면 toArray()때문에 깨짐. 서버에서 실시간 전송시 문자자료만 전송 가능
+            응답.write('data: ' + JSON.stringify(결과) + '\n\n'); // JSON으로 보내기
         });
 });
 

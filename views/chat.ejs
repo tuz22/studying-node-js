@@ -34,8 +34,18 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script>
             var 지금누른채팅방id;
+            var eventsource;
+
+            // 채팅방 하나 클릭하면
             $('.list-group-item').click(function () {
                 지금누른채팅방id = this.dataset.id;
+
+                // 여기 채널로 입장
+                eventsource = new EventSource('/message/' + 지금누른채팅방id);
+                eventsource.addEventListener('test', function (e) {
+                    e.data; // 서버에서 보낸 데이터
+                    console.log(JSON.parse(e.data));
+                });
             });
             $('#send').click(function () {
                 var 채팅내용 = $('#chat-input').val();
