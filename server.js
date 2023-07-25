@@ -267,6 +267,21 @@ app.get('/chat', 로그인했니, function (요청, 응답) {
         });
 });
 
+app.post('/message', 로그인했니, function (요청, 응답) {
+    var 저장할거 = {
+        parent: 요청.body.parent,
+        content: 요청.body.content,
+        userid: 요청.user._id,
+        date: new Date(),
+    };
+    db.collection('message')
+        .insertOne(저장할거)
+        .then(() => {
+            console.log('DB저장 성공');
+            응답.send('DB저장 성공');
+        });
+});
+
 /* 검색 */
 app.get('/search', (요청, 응답) => {
     console.log(요청.query); // { value: '쿠키숙제하기' }
