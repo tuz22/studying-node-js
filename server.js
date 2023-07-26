@@ -301,6 +301,18 @@ app.get('/message/:id', 로그인했니, function (요청, 응답) {
             // -> 이렇게 보내면 toArray()때문에 깨짐. 서버에서 실시간 전송시 문자자료만 전송 가능
             응답.write('data: ' + JSON.stringify(결과) + '\n\n'); // JSON으로 보내기
         });
+
+    // Change Stream 설정
+    // const pipeline = [{ $match: {} }]; // 컬렉션 안의 원하는 document만 감시하고 싶으면 $match에 넣어주면 됨
+    const pipeline = [{ $match: { 'fullDocument.parent': 요청.params.id } }]; // 원하는 document(ex) parent: 요청.params.id)에 fullDocument. 붙여주기
+    const collection = db.collection('message');
+    const changeStream = collection.watch(pipeline); // watch(): 실시간 감시해줌
+    
+    changeStream.on('change', (result) => {
+        console.log(result.fullDocument);
+        응답.write('event: test\n');
+        응답.write('data:' + JSON.stringify([result.fullDocument]) + '\n\n');
+    }); // 해당 컬렉션에 변동사항이 생기면 여기 코드를 실행
 });
 
 /* 검색 */

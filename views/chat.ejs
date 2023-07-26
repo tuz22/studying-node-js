@@ -28,6 +28,21 @@
                         <% } %>
                     </ul>
                 </div>
+                <div class="col-8 p-0">
+                    <div class="chat-room border" style="max-height: 25rem; overflow-y: scroll">
+                        <div class="card m-4 border border-0" style="width: 18rem; height: 25rem">
+                            <ul class="list-group list-group-flush chat-content">
+                                <li class="list-group-item list-group-item-secondary mt-2 mb-2">
+                                    <span class="chat-box">채팅방1 내용</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="input-group mt-3">
+                        <input class="form-control" id="chat-input" />
+                        <button class="btn btn-secondary" id="send">전송</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -39,12 +54,24 @@
             // 채팅방 하나 클릭하면
             $('.list-group-item').click(function () {
                 지금누른채팅방id = this.dataset.id;
+                $('.chat-content').html('');
+
+                if (eventsource != undefined) {
+                    // 채팅방에 입장한 상태에서 채널 나가기
+                    eventsource.close();
+                }
 
                 // 여기 채널로 입장
                 eventsource = new EventSource('/message/' + 지금누른채팅방id);
                 eventsource.addEventListener('test', function (e) {
-                    e.data; // 서버에서 보낸 데이터
-                    console.log(JSON.parse(e.data));
+                    var 가져온거 = JSON.parse(e.data); // 서버에서 보낸 데이터
+                    가져온거.forEach((i) => {
+                        $('.chat-content').append(
+                            '<li class="list-group-item list-group-item-secondary mt-2 mb-2"><span class="chat-box">' +
+                                i.content +
+                                '</span></li>'
+                        );
+                    });
                 });
             });
             $('#send').click(function () {
@@ -53,7 +80,7 @@
                     parent: 지금누른채팅방id,
                     content: 채팅내용,
                 };
-                $.post('/message'+ 지금누른채팅방id, 보낼거).then(() => {
+                $.post('/message/' + 지금누른채팅방id, 보낼거).then(() => {
                     console.log('전송 성공');
                 });
             });
