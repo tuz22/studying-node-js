@@ -53,7 +53,7 @@
                     parent: 지금누른채팅방id,
                     content: 채팅내용,
                 };
-                $.post('/message', 보낼거).then(() => {
+                $.post('/message'+ 지금누른채팅방id, 보낼거).then(() => {
                     console.log('전송 성공');
                 });
             });
