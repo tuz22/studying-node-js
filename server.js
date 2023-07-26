@@ -1,6 +1,10 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const http = require('http').createServer(app); // socket.io 설정
+const { Server } = require('socket.io');
+const io = new Server(http);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('vew engine', 'ejs');
 const methodOverride = require('method-override');
@@ -23,10 +27,25 @@ MongoClient.connect(process.env.DB_URL, function (에러, client) {
     //     console.log('저장완료');
     // });
 
-    app.listen(process.env.PORT, function () {
+    // app.listen -> http.listen으로 변경
+    http.listen(process.env.PORT, function () {
         // listen(서버 띄울 포트번호, 띄운 후 실행할 코드)
         console.log('listening on 8080');
     }); // 서버를 띄우기 위한 기본 세팅
+});
+
+/* WebSocket 사용 */
+app.get('/socket', function (요청, 응답) {
+    응답.render('socket.ejs');
+});
+
+// 누군가 웹소켓에 접속하면 여기 내부 코드를 실행
+io.on('connection', function (socket) {
+    console.log('사용자가 접속함');
+    // 서버가 수신하려면 socket.on(작명, 콜백함수)
+    socket.on('user-send', function (data) {
+        console.log(data);
+    });
 });
 
 /* get 요청 */
@@ -287,7 +306,7 @@ app.post('/message/:id', 로그인했니, function (요청, 응답) {
 // 실시간 소통채널 열기
 app.get('/message/:id', 로그인했니, function (요청, 응답) {
     응답.writeHead(200, {
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
     });
@@ -307,7 +326,7 @@ app.get('/message/:id', 로그인했니, function (요청, 응답) {
     const pipeline = [{ $match: { 'fullDocument.parent': 요청.params.id } }]; // 원하는 document(ex) parent: 요청.params.id)에 fullDocument. 붙여주기
     const collection = db.collection('message');
     const changeStream = collection.watch(pipeline); // watch(): 실시간 감시해줌
-    
+
     changeStream.on('change', (result) => {
         console.log(result.fullDocument);
         응답.write('event: test\n');
