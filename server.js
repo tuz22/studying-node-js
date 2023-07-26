@@ -42,6 +42,17 @@ app.get('/socket', function (요청, 응답) {
 // 누군가 웹소켓에 접속하면 여기 내부 코드를 실행
 io.on('connection', function (socket) {
     console.log('사용자가 접속함');
+
+    // 채팅방 개설 및 입장 socket.join(방이름)
+    socket.on('join-room', function (data) {
+        socket.join('room1');
+    });
+
+    // 입장한 채팅방에서 메시지 전송
+    socket.on('room1-send', function (data) {
+        socket.to('room1').emit('broadcast', data);
+    });
+
     // 서버가 수신하려면 socket.on(작명, 콜백함수)
     socket.on('user-send', function (data) {
         // 서버 -> 사용자 메시지 전송 io.emit() - 모든 사용자에게 메시지를 보내줌 == broadcast
