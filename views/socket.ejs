@@ -20,11 +20,29 @@
         <%- include('nav.html') %>
 
         <h4 class="ml-2 my-3 text-center">채팅방</h4>
-        <button class="btn btn-outline-secondary" id="send">서버에 메시지 보내기</button>
+        <div class="chat-room border" style="max-height: 25rem; overflow-y: scroll">
+            <div class="card m-4 border border-0" style="width: 18rem; height: 25rem">
+                <ul class="list-group list-group-flush chat-content">
+                    <!-- <li class="list-group-item list-group-item-secondary mt-2 mb-2">
+                        <span>채팅방 내용</span>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+        <div class="input-group mt-3">
+            <input class="form-control" id="input" />
+            <button class="btn btn-outline-secondary" id="send">서버에 메시지 보내기</button>
+        </div>
         <script>
             var socket = io();
             $('#send').click(function () {
-                socket.emit('user-send', '안녕하세요'); // 서버 -> 웹소켓 실시간 메시지 보내는법: socket.emit(작명, 메시지)
+                socket.emit('user-send', $('#input').val()); // 서버 -> 웹소켓 실시간 메시지 보내는법: socket.emit(작명, 메시지)
+            });
+            socket.on('broadcast', function (data) {
+                console.log(data);
+                $('.chat-content').append(
+                    '<li class="list-group-item list-group-item-secondary mt-2 mb-2"><span>' + data + '</span></li>'
+                );
             });
         </script>
 

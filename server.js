@@ -44,6 +44,9 @@ io.on('connection', function (socket) {
     console.log('사용자가 접속함');
     // 서버가 수신하려면 socket.on(작명, 콜백함수)
     socket.on('user-send', function (data) {
+        // 서버 -> 사용자 메시지 전송 io.emit() - 모든 사용자에게 메시지를 보내줌 == broadcast
+        io.emit('broadcast', data); // 단체 채팅
+        // io.to(socket.id).emit('broadcast', data); // 개인 채팅 - socket.id가 일치하는 사람한테만 메시지를 보내줌
         console.log(data);
     });
 });
