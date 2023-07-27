@@ -434,3 +434,35 @@ app.post('/upload', upload.single('profile'), function (요청, 응답) {
 app.get('/image/:imageName', function (요청, 응답) {
     응답.sendFile(__dirname + '/public/image/' + 요청.params.imageName); // __dirname: 현재파일 경로
 });
+
+/* Node + Express 서버와 React 연동 */
+// app.use(express.static(path.join(__dirname, 'react-project/build'))); // ''폴더안에 있는 파일들을 사용하겠다~전송하겠다~
+
+// app.get('/', function (요청, 응답) {
+//     응답.sendFile(path.join(__dirname, 'react-project/build/index.html')); // '' : 리액트로만든html파일경로
+// });
+
+// // 리액트 라우터 사용하는 경우(최하단에 위치)
+// app.get('*', function (요청, 응답) {
+//     응답.sendFile(path.join(__dirname, 'react-project/build/index.html'));
+// });
+
+/**
+ * DB 데이터를 리액트에서 보여주려면
+ * 1. DB 데이터 뽑아서 보여줄 API 작성
+ * 2. 리액트 프로젝트에서 해당 API 주소로 GET 요청
+ *
+ * 참고)
+ *  ajax사용하려면 cors 설치
+ *  > npm install cors
+ *
+ * cors 세팅)
+ *  app.use(express.json());
+ *  var cors = require('cores');
+ *  app.use(cors());
+ *
+ */
+// api 예시
+// app.get('/product', function (요청, 응답) {
+//     응답.json({ name: 'black shirts' });
+// });
